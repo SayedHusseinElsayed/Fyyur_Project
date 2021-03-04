@@ -5,7 +5,16 @@
 import json
 import dateutil.parser
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for, session
+from flask import (
+    Flask, 
+    render_template, 
+    request, 
+    Response, 
+    flash, 
+    redirect, 
+    url_for,
+    session
+)
 from flask_moment import Moment
 from configparser import ConfigParser
 from sqlalchemy import func
@@ -71,26 +80,43 @@ def index():
 def venues():
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
- 
-  data = Venue.query.order_by('id').all()
- 
+  locals = []
+  venues = Venue.query.all()
 
-  return render_template('pages/venues.html', areas=data)
+  places = Venue.query.distinct(Venue.city, Venue.state).all()
+
+  for place in places:
+    locals.append({
+        'city': place.city,
+        'state': place.state,
+        'venues': [{
+            'id': venue.id,
+            'name': venue.name,
+            'num_upcoming_shows': len([show for show in venue.show if show.start_time > datetime.now()])
+        } for venue in venues if
+            venue.city == place.city and venue.state == place.state]
+    })
+
+  return render_template('pages/venues.html', areas=locals)
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-  # seach for Hop should return "The Musical Hop".
-  # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
+ search = request.form.get('search_term', '')
 
-  search_term = request.form.get('search_term', '')
-  #search_term = Venue.query.filter(func.lower(Venue.name) == func.lower(search_term)).first()
+ venues = Venue.query.filter(Venue.name.ilike("%" + search + "%")).all()
 
-  search = "%{}%".format(search_term)
-  response = Venue.query.filter(Venue.name.ilike(search)).all()
-  count_search = Venue.query.filter(Venue.name.ilike(search)).count()
+ response = {
+    "count": len(venues),
+    "data": []
+}
 
-  return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''),count_search=count_search)
+ for venue in venues:
+    response["data"].append({
+        'id': venue.id,
+        'name': venue.name,
+    })
+
+ return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
@@ -151,7 +177,7 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-
+ 
     data = request.form
     name = data['name']
     city = data['city']
@@ -215,15 +241,22 @@ def artists():
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
-  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-  # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
-  # search for "band" should return "The Wild Sax Band".
-  search_term = request.form.get('search_term', '')
-  search = "%{}%".format(search_term)
-  response = Artist.query.filter(Artist.name.ilike(search)).all()
-  count_search = Artist.query.filter(Artist.name.ilike(search)).count()
+ search = request.form.get('search_term', '')
 
-  return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''), count_search=count_search)
+ artists = Artist.query.filter(Artist.name.ilike("%" + search + "%")).all()
+
+ response = {
+    "count": len(artists),
+    "data": []
+ }
+
+ for artist in artists:
+    response["data"].append({
+        'id': artist.id,
+        'name': artist.name,
+    })
+
+    return render_template('pages/search_artists.html', results=response)
 
 # Delete Artist method
 @app.route('/artists/<artist_id>', methods=['POST'])
