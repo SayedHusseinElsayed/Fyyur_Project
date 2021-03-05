@@ -177,7 +177,7 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
- 
+  
     data = request.form
     name = data['name']
     city = data['city']
@@ -186,12 +186,28 @@ def create_venue_submission():
     phone = data['phone']
     genres = data.getlist('genres')
     facebook_link = data['facebook_link']
+    website = data['website']
+    image_link = data['image_link']
+    seeking_talent = bool(data['seeking_talent'])
+    seeking_description = data['seeking_description']
+
     if Venue.query.first() != None and Venue.query.filter_by(phone=phone).first() != None:
         flash('this Venue is already listed!')
     else:
         try:
-            new_venue = Venue(name=name, city=city, state=state, address=address,
-                              phone=phone, genres=genres, facebook_link=facebook_link)
+            new_venue = Venue(
+            name=name,
+            city=city,
+            state=state,
+            address=address,
+            phone=phone,
+            genres=genres,
+            facebook_link=facebook_link,
+            image_link=image_link,
+            website=website,
+            seeking_talent=seeking_talent,
+            seeking_description=seeking_description
+            )
             db.session.add(new_venue)
             db.session.commit()
             # on successful db insert, flash success
@@ -345,7 +361,12 @@ def edit_artist(artist_id):
   form.phone.data = artist.phone
   form.genres.data = artist.genres
   form.facebook_link.data = artist.facebook_link
- 
+  form.website.data = artist.website
+  form.image_link.data = artist.image_link
+  form.address.data = artist.address
+  form.seeking_venue.data = artist.seeking_venue
+  form.seeking_description.data = artist.seeking_description
+
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
@@ -359,7 +380,10 @@ def edit_artist_submission(artist_id):
     artist.phone = data['phone']
     artist.genres = data.getlist('genres')
     artist.facebook_link = data['facebook_link']
-   
+    artist.website = data['website']
+    artist.image_link = data['image_link']
+    artist.seeking_venue = bool(data['seeking_venue'])
+    artist.seeking_description = data['seeking_description']
     try:
            
             db.session.commit()
@@ -390,6 +414,11 @@ def edit_venue(venue_id):
   form.phone.data = venue.phone
   form.genres.data = venue.genres
   form.facebook_link.data = venue.facebook_link
+  form.website.data = venue.website
+  form.image_link.data = venue.image_link
+  form.address.data = venue.address
+  form.seeking_talent.data = venue.seeking_talent
+  form.seeking_description.data = venue.seeking_description
 
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
@@ -406,7 +435,11 @@ def edit_venue_submission(venue_id):
     venue.address = data['address']
     venue.genres = data.getlist('genres')
     venue.facebook_link = data['facebook_link']
-   
+    venue.website = data['website']
+    venue.image_link = data['image_link']
+    venue.seeking_talent = bool(data['seeking_talent'])
+    venue.seeking_description = data['seeking_description']
+
     try:
            
             db.session.commit()
@@ -441,14 +474,28 @@ def create_artist_submission():
     address = data['address']
     phone = data['phone']
     genres = data.getlist('genres')
-
     facebook_link = data['facebook_link']
+    website = data['website']
+    image_link = data['image_link']
+    seeking_venue = bool(data['seeking_venue'])
+    seeking_description = data['seeking_description']
     if Artist.query.first() != None and Artist.query.filter_by(phone=phone).first() != None:
         flash('this Artist is already listed!')
     else:
         try:
-            new_artist = Artist(name=name, city=city, state=state,address=address,
-                              phone=phone, genres=genres, facebook_link=facebook_link)
+            new_artist = Artist(
+            name=name,
+            city=city,
+            state=state,
+            address=address,
+            phone=phone,
+            genres=genres,
+            facebook_link=facebook_link,
+            website=website,
+            image_link=image_link,
+            seeking_venue=seeking_venue,
+            seeking_description=seeking_description
+            )
             db.session.add(new_artist)
             db.session.commit()
             # on successful db insert, flash success
